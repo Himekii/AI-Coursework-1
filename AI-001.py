@@ -1,3 +1,5 @@
+import math
+
 # +------------------------------------------------------------
 # Utility functions
 def print_state(state):
@@ -105,9 +107,6 @@ def dfs_stack(state, goal):
     prev_node_copy = prev_node
     
     while stack:
-        if len(predecessor) == 22472:
-            print("STOP")
-        
         
         current = stack[-1]
         
@@ -135,10 +134,25 @@ def dfs_stack(state, goal):
 def iddfs_stack(state, goal):
     return 0;
 
-def manhatten():
-    return 0;
+def manhatten(state, state1):
+    by, bx, rows = state
+    by1, bx1, rows1 = state1
+    
+    result = 0
+    indices = {}
+    
+    
+    for row in range(len(rows)):
+        for val in range(len(rows[row])):
+            indices[rows[row][val]] = [row,val]
 
-def ida_stack(state, goal):
+    for row in range(len(rows1)):
+        for val in range(len(rows1[row])):
+            result += abs(indices[rows1[row][val]][0] - row) + abs(indices[rows1[row][val]][1] - val)
+   
+    return result
+
+def ida(state, goal):
     """
     How to apply Iterative Deepening to A*?
     1. A pass consists in expanding all nodes that have an value less
@@ -154,11 +168,46 @@ def ida_stack(state, goal):
         state (ID).
     """
     
+    stack = [state]
     
+    predecessor = {}
+    prev_node = None
+    prev_node_copy = prev_node
+    
+    # maxmanhatten = 
+    
+    while stack:
+        
+        current = stack[-1]
+        
+        thresh = manhatten(current, goal)
+        
+        
+        # key = current[0], current[1], tuple(tuple(row) for row in current[2])
+        
+        # if prev_node == key:
+        #     prev_node = predecessor[prev_node]
+        
+        # if key not in predecessor: #If node is unexplored
+        #     predecessor[key] = prev_node #Add the node to predecessor with its parent node
+        # else:
+        #     stack.pop()
+        #     continue
+            
+        # if current == goal:
+        #     return get_path(key, predecessor)
+
+        # for next_state in move(current):
+        #     if manhatten(next_state, goal) > thresh:
+        #         stack.append(next_state)
+        
+        
+        # prev_node = key
     
     return 0;
 
 print("\nDFS STACK:")
 goal = [0, 2, [[3, 2, 0], [6, 1, 8], [4, 7, 5]]] 
-path = dfs_stack([0, 0, [[0, 7, 1], [4, 3, 2], [8, 6, 5]]], goal)
-print_path(path)
+# path = dfs_stack([0, 0, [[0, 7, 1], [4, 3, 2], [8, 6, 5]]], goal)
+path = ida([0, 0, [[0, 7, 1], [4, 3, 2], [8, 6, 5]]], goal)
+# print_path(path)
