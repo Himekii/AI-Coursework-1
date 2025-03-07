@@ -2,6 +2,7 @@
 # Utility functions
 def print_state(state):
     by, bx, rows = state
+    print(bx, by)
     for row in rows:
         print(row, '\n', end = '')
 
@@ -10,15 +11,16 @@ def trans(state, state1):
     by, bx, rows = state
     by1, bx1, rows1 = state1
     if bx < bx1:
-        print("moved blank right")
-    elif bx > bx1:
         print("moved blank left")
+    elif bx > bx1:
+        print("moved blank right")
     elif by < by1:
-        print("moved blank down")
-    elif by > by1:
         print("moved blank up")
+    elif by > by1:
+        print("moved blank down")
     else:
         print("Error")
+        raise("Error")
 
 def print_path(path):
     print_state(path[0])
@@ -46,13 +48,8 @@ def move(state):
     """
     move(state):
     generator that returns all states that are reached from
-    state, in one move and are safe.
+    state, in one move.
 
-    There are five possible moves from left to right: move one or two jailers,
-    one or two convicts, or one of each.  For each of these, there is one yield.
-
-    We could make five more yield like the above for moves from right to left,
-    but we can instead take advantage of the symmetry of the problem.
     :param state:
     :return: next_state
     """
@@ -62,30 +59,26 @@ def move(state):
     if bx < 2: #Blank space not on right
         #Move Right
         temp_rows = [list(row) for row in rows]
-        temp_rows[by][bx] = temp_rows[by][bx+1]
-        temp_rows[by][bx+1] = 0
-        next_state = by, bx+1, tuple(tuple(row) for row in temp_rows)
+        temp_rows[by][bx], temp_rows[by][bx+1] = temp_rows[by][bx+1], 0
+        next_state = [by, bx+1, temp_rows]
         yield next_state
     if bx > 0: #Blank space not on left
         #Move Left
         temp_rows = [list(row) for row in rows]
-        temp_rows[by][bx] = temp_rows[by][bx-1]
-        temp_rows[by][bx-1] = 0
-        next_state = by, bx-1, tuple(tuple(row) for row in temp_rows)
+        temp_rows[by][bx], temp_rows[by][bx-1] = temp_rows[by][bx-1], 0
+        next_state = [by, bx-1, temp_rows]
         yield next_state
     if by < 2: #Blank space not at bottom
         #Move Down
         temp_rows = [list(row) for row in rows]
-        temp_rows[by][bx] = temp_rows[by+1][bx]
-        temp_rows[by+1][bx] = 0
-        next_state = by+1, bx, tuple(tuple(row) for row in temp_rows)
+        temp_rows[by][bx], temp_rows[by+1][bx] = temp_rows[by+1][bx], 0
+        next_state = [by+1, bx, temp_rows]
         yield next_state
     if by > 0: #Blank space not at top
         #Move Up
         temp_rows = [list(row) for row in rows]
-        temp_rows[by][bx] = temp_rows[by-1][bx]
-        temp_rows[by-1][bx] = 0
-        next_state = by-1, bx, tuple(tuple(row) for row in temp_rows)
+        temp_rows[by][bx], temp_rows[by-1][bx]  = temp_rows[by-1][bx], 0
+        next_state = [by-1, bx, temp_rows]
         yield next_state
 
     return None
@@ -110,33 +103,27 @@ def dfs_stack(state, goal):
     predecessor = {}
     prev_node = None
     
-    # while stack:
     while stack:
         current = stack[-1]
         
-        if current not in predecessor:
-            predecessor[current] = prev_node
+        key = current[0], current[1], tuple(tuple(row) for row in current[2])
+        
+        if key not in predecessor:
+            predecessor[key] = prev_node
         else:
             stack.pop()
             continue
             
         if current == goal:
-            return get_path(current, predecessor)
+            return get_path(key, predecessor)
 
-
-        
         offspring = move(current)
 
-        hasKids = False
-        
         for next_state in offspring:
-            hasKids = True
             stack.append(next_state)
-
-        if not hasKids:
-            print("No kids")
             
-        prev_node = current
+        prev_node = key
+    print("No solution found")
 
 def iddfs_stack(state, goal):
     return 0;
@@ -144,8 +131,7 @@ def iddfs_stack(state, goal):
 def ida_stack(state, goal):
     return 0;
 
-print("\nTEST OF DFS STACK:")
-goal = (0, 2, ((3, 2, 0),(6, 1, 8), (4, 7, 5)))
-path = dfs_stack((0, 0, ((0, 7, 1), (4, 3, 2), (8, 6, 5))), goal)
-print(path)
+print("\nDFS STACK:")
+goal = [0, 2, [[3, 2, 0], [6, 1, 8], [4, 7, 5]]] 
+path = dfs_stack([0, 0, [[0, 7, 1], [4, 3, 2], [8, 6, 5]]], goal)
 print_path(path)
