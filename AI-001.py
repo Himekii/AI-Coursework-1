@@ -104,7 +104,6 @@ def dfs_stack(state, goal):
     
     predecessor = {}
     prev_node = None
-    prev_node_copy = prev_node
     
     while stack:
         
@@ -130,11 +129,12 @@ def dfs_stack(state, goal):
         
         prev_node = key
     print("No solution found")
+    return [state]
 
 def iddfs_stack(state, goal):
     return 0;
 
-def manhatten(state, state1):
+def manhattan(state, state1):
     by, bx, rows = state
     by1, bx1, rows1 = state1
     
@@ -168,46 +168,55 @@ def ida(state, goal):
         state (ID).
     """
     
-    stack = [state]
     
-    predecessor = {}
-    prev_node = None
-    prev_node_copy = prev_node
+    #Each number multiplied by maximum manhatten (across and up/down) for each number
+    maxmanhattan = (len(state[2])*len(state[2][0]) * (len(state[2])-1 + len(state[2][0])-1))
     
-    # maxmanhatten = 
     
-    while stack:
-        
-        current = stack[-1]
-        
-        thresh = manhatten(current, goal)
-        
-        
-        # key = current[0], current[1], tuple(tuple(row) for row in current[2])
-        
-        # if prev_node == key:
-        #     prev_node = predecessor[prev_node]
-        
-        # if key not in predecessor: #If node is unexplored
-        #     predecessor[key] = prev_node #Add the node to predecessor with its parent node
-        # else:
-        #     stack.pop()
-        #     continue
+    for thresh in range(manhattan(state, goal), maxmanhattan):
+        stack = [state]
+        predecessor = {}
+        prev_node = None
+        while stack:
             
-        # if current == goal:
-        #     return get_path(key, predecessor)
-
-        # for next_state in move(current):
-        #     if manhatten(next_state, goal) > thresh:
-        #         stack.append(next_state)
-        
-        
-        # prev_node = key
+            current = stack[-1]
+            
+            
+            
+            key = current[0], current[1], tuple(tuple(row) for row in current[2])
+            
+            if prev_node == key:
+                prev_node = predecessor[prev_node]
+            
+            if key not in predecessor: #If node is unexplored
+                predecessor[key] = prev_node #Add the node to predecessor with its parent node
+            else:
+                stack.pop()
+                continue
+                
+            if current == goal:
+                return get_path(key, predecessor)
     
-    return 0;
+            for next_state in move(current):
+                if manhattan(next_state, goal) < thresh:
+                    stack.append(next_state)
+            
+            
+            prev_node = key
+    print("No solution found")
+    return [state]
+
+"""
+(1) Case number.
+(2) The number of moves to solve the case (i.e. the number of states – 1 in the
+shortest path from the initial state to the goal).
+(3) The number of nodes opened, that is, the number of yield made by the move
+method during the search for a solution.
+(4) The computing time the search took"""
+
 
 print("\nDFS STACK:")
 goal = [0, 2, [[3, 2, 0], [6, 1, 8], [4, 7, 5]]] 
 # path = dfs_stack([0, 0, [[0, 7, 1], [4, 3, 2], [8, 6, 5]]], goal)
 path = ida([0, 0, [[0, 7, 1], [4, 3, 2], [8, 6, 5]]], goal)
-# print_path(path)
+print_path(path)
