@@ -1,4 +1,5 @@
 import math
+import time
 
 # +------------------------------------------------------------
 # Utility functions
@@ -84,6 +85,24 @@ def move(state):
 
     return None
 
+# def move_blank(i,j,n):
+#     if i+1 < n:
+#         yield (i+1,j)   
+#     if i-1 >= 0:
+#         yield (i-1,j)
+#     if j+1 < n:
+#         yield (i,j+1)
+#     if j-1 >= 0:
+#         yield (i,j-1)
+
+# def move(state):
+#     [i,j,grid]=state
+#     n = len(grid)
+#     for pos in move_blank(i,j,n):
+#         i1,j1 = pos
+#         grid[i][j], grid[i1][j1] = grid[i1][j1], grid[i][j]
+#         yield [i1,j1,grid]
+#         grid[i][j], grid[i1][j1] = grid[i1][j1], grid[i][j]
 
 
 def dfs_stack(state, goal):
@@ -171,38 +190,35 @@ def ida(state, goal):
     
     #Each number multiplied by maximum manhatten (across and up/down) for each number
     maxmanhattan = (len(state[2])*len(state[2][0]) * (len(state[2])-1 + len(state[2][0])-1))
+    thresh = manhattan(state, goal)
     
+    accesses = 0
     
-    for thresh in range(manhattan(state, goal), maxmanhattan):
-        stack = [state]
-        predecessor = {}
-        prev_node = None
+    while thresh <= maxmanhattan:
+        minmanhattan = maxmanhattan
+        predecessor = {(state[0], state[1], tuple(tuple(row) for row in state[2])) : None}
+        stack = [[0,state]]
         while stack:
             
-            current = stack[-1]
-            
-            
-            
+            depth, current = stack.pop() #Destack most recent unseen element
             key = current[0], current[1], tuple(tuple(row) for row in current[2])
             
-            if prev_node == key:
-                prev_node = predecessor[prev_node]
-            
-            if key not in predecessor: #If node is unexplored
-                predecessor[key] = prev_node #Add the node to predecessor with its parent node
-            else:
-                stack.pop()
-                continue
-                
             if current == goal:
-                return get_path(key, predecessor)
+                return get_path(key, predecessor), accesses
     
-            for next_state in move(current):
-                if manhattan(next_state, goal) < thresh:
-                    stack.append(next_state)
-            
-            
-            prev_node = key
+            h = depth + manhattan(current, goal)
+    
+            if h <= thresh:
+                for next_state in move(current):
+                    accesses += 1
+                    nextKey = next_state[0], next_state[1], tuple(tuple(row) for row in next_state[2])
+                    if nextKey not in predecessor:
+                        predecessor[nextKey] = key
+                        stack.append([depth + 1, next_state])
+            elif h < minmanhattan:
+                minmanhattan = h
+                
+        thresh = minmanhattan
     print("No solution found")
     return [state]
 
@@ -214,9 +230,35 @@ shortest path from the initial state to the goal).
 method during the search for a solution.
 (4) The computing time the search took"""
 
+def main(cases, goal, ind = 0):
+    for i in range(len(cases)):
+        print(f"Case {i + 1 + ind}")
+        start = time.time()
+        path, accesses = ida(cases[i], goal)
+        compTime = time.time() - start
+        print(f"States expanded: {accesses}")
+        print(f"Path Length: {len(path)}")
+        print(f"Computation Time: {compTime * 1000}ms \n\n")
+        
+cases1 = [[0, 0, [[0, 7, 1], [4, 3, 2], [8, 6, 5]]],
+[0, 2, [[5, 6, 0], [1, 3, 8], [4, 7, 2]]],
+[2, 0, [[3, 5, 6], [1, 2, 7], [0, 8, 4]]],
+[1, 1, [[7, 3, 5], [4, 0, 2], [8, 1, 6]]],
+[2, 0, [[6, 4, 8], [7, 1, 3], [0, 2, 5]]]]
 
-print("\nDFS STACK:")
-goal = [0, 2, [[3, 2, 0], [6, 1, 8], [4, 7, 5]]] 
-# path = dfs_stack([0, 0, [[0, 7, 1], [4, 3, 2], [8, 6, 5]]], goal)
-path = ida([0, 0, [[0, 7, 1], [4, 3, 2], [8, 6, 5]]], goal)
-print_path(path)
+goal1 = [0, 2, [[3, 2, 0], [6, 1, 8], [4, 7, 5]]] 
+
+main(cases1, goal1)
+
+cases2 = [[0, 0, [[0, 1, 8], [3, 6, 7], [5, 4, 2]]],
+[2, 0, [[6, 4, 1], [7, 3, 2], [0, 5, 8]]],
+[0, 0, [[0, 7, 1], [5, 4, 8], [6, 2, 3]]],
+[0, 2, [[5, 4, 0], [2, 3, 1], [8, 7, 6]]],
+[2, 1, [[8, 6, 7], [2, 5, 4], [3, 0, 1]]]]
+
+goal2 = [2, 2, [[1, 2, 3], [4, 5, 6], [7, 8, 0]]]
+
+main(cases2, goal2, 5)
+
+
+
